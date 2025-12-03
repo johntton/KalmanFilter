@@ -5,8 +5,9 @@
 
 class VideoCapture {
 public:
-    VideoCapture();
-    cv::Mat initCamera();
+    VideoCapture(int index = 1);
+    ~VideoCapture();
+    cv::Mat getFrame();
 private:
     cv::Mat img;
     cv::VideoCapture cap;

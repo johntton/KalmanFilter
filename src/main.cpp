@@ -1,10 +1,10 @@
 #include "VideoCapture.h"
 
 int main() {
-    VideoCapture vc;
+    VideoCapture camera;
     
     while (true) {
-        cv::Mat frame = vc.initCamera();
+        cv::Mat frame = camera.getFrame();
         if (frame.empty()) {
             break; // Exit loop if frame is empty
         }

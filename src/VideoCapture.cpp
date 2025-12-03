@@ -1,18 +1,27 @@
 #include "VideoCapture.h"
 
-VideoCapture::VideoCapture() : cap(1) {}
+VideoCapture::VideoCapture(int index) {
+    cap.open(index);
 
-cv::Mat VideoCapture::initCamera() {
     if (!cap.isOpened()) {
-        std::cerr << "Camera failed to open!\n";
-        return cv::Mat();
+        std::cerr << "Error: Failed to open camera at index " << index << "!\n";
     }
 
-    cap.read(img);
-    if (img.empty()) {
-        std::cerr << "Frame grab failed!\n";
-        return cv::Mat();
+    cap.set(cv::CAP_PROP_FRAME_WIDTH, 640);
+    cap.set(cv::CAP_PROP_FRAME_HEIGHT, 480);
+}
+
+cv::Mat VideoCapture::getFrame() {
+    cv::Mat frame;
+    cap.read(frame);
+
+    if (frame.empty()) {
+        std::cerr << "Warning: Failed to grab frame!\n";
     }
 
-    return img;
+    return frame;
+}
+
+VideoCapture::~VideoCapture() {
+    cap.release();
 }
