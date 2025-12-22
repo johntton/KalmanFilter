@@ -5,7 +5,7 @@
 
 class VideoCapture {
 public:
-    VideoCapture(int index = 1);
+    VideoCapture(int index); 
     ~VideoCapture();
     cv::Mat getFrame();
 private:

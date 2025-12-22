@@ -1,8 +1,6 @@
 #include "VideoCapture.h"
 
 VideoCapture::VideoCapture(int index) {
-    std::cout << "VideoCapture constructor called with index: " << index << "\n";
-
     cap.open(index);
 
     if (!cap.isOpened()) {
@@ -14,8 +12,6 @@ VideoCapture::VideoCapture(int index) {
 }
 
 cv::Mat VideoCapture::getFrame() {
-    std::cout << "VideoCapture getFrame method called.\n";
-
     cv::Mat frame;
     cap.read(frame);
 
