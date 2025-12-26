@@ -9,6 +9,7 @@ find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS}/opencv4)
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
-add_executable(KalmanFilter src/main.cpp src/KalmanFilter.cpp src/ArucoDetector.cpp src/Tracker.cpp src/VideoCapture.cpp)
+add_executable(KalmanFilter src/main.cpp src/KalmanFilter.cpp src/ArucoDetector.cpp src/Tracker.cpp src/VideoCapture.cpp src/MarkerCreator.cpp)
 
 target_link_libraries(KalmanFilter ${OpenCV_LIBS})
+target_compile_definitions(KalmanFilter PRIVATE PROJECT_SOURCE_DIR=\"${CMAKE_SOURCE_DIR}\")
