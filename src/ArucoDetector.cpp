@@ -27,7 +27,7 @@ std::vector<std::vector<cv::Point2f>> ArucoDetector::getCorners() {
 
 // Function to calculate the center of a marker given its corners
 cv::Point2f ArucoDetector::getMarkerCenter(std::vector<cv::Point2f> corners) {
-    cv::Point2f center(0, 0);
+    center = cv::Point2f(0, 0);
     for (const auto& corner : corners) {
         center.x += corner.x;
         center.y += corner.y;
@@ -35,4 +35,13 @@ cv::Point2f ArucoDetector::getMarkerCenter(std::vector<cv::Point2f> corners) {
     center.x /= corners.size();
     center.y /= corners.size();
     return center;
+}
+
+// Function to draw the center of the detected marker on the frame
+cv::Mat ArucoDetector::drawCenter(cv::Mat &frame) {
+    if (!markerCorners.empty()) {
+        center = getMarkerCenter(markerCorners[0]);
+        cv::circle(frame, center, 5, cv::Scalar(255, 255, 255), -1);
+    }
+    return frame;
 }
