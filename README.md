@@ -1,21 +1,20 @@
 # Kalman Filter ArUco Marker Tracking
 
-A C++ application that uses a Kalman filter to track ArUco markers detected in real-time video streams. This project combines computer vision with state estimation to predict marker positions and improve tracking accuracy.
+A C++ application that detects an ArUco marker in a live camera feed and uses a Kalman filter to estimate and predict its position. This project combines computer vision with state estimation to smooth noisy detections and anticipate where the marker will be next.
 
 ## Overview
 
-This application performs real-time marker detection and position prediction using:
-- **ArUco Marker Detection**: Identifies ArUco markers in video frames
-- **Kalman Filter**: Estimates and predicts marker positions based on measurements
-- **OpenCV**: Handles video capture, image processing, and visualization
+The application uses:
+- **ArUco marker detection** to find a marker in each video frame
+- **A Kalman filter** to estimate the marker's position and velocity and predict its next position
+- **OpenCV** for video capture, image processing, and display
 
 ## Features
 
-- **ArUco Marker Generation**: Create and save custom ArUco markers
-- **Real-time Detection**: Detect ArUco markers in live video streams
-- **Position Prediction**: Use Kalman filtering to predict next marker position
-- **Visual Feedback**: Display detected positions (white dots) and predicted positions (red dots)
-- **Camera Support**: Capture from any available camera device
+- **Marker generation**: Generates a printable ArUco marker (`aruco_marker.png`)
+- **Real-time detection**: Detects ArUco markers (`DICT_4X4_50`) in a live camera feed
+- **Position prediction**: Predicts the marker's next position with a constant-velocity Kalman filter
+- **Visual feedback**: Draws the detected center (white dot) and predicted position (red dot) on each frame
 
 ## Project Structure
 
@@ -23,111 +22,91 @@ This application performs real-time marker detection and position prediction usi
 include/
 ├── KalmanFilter.h      # Kalman filter state estimation
 ├── ArucoDetector.h     # ArUco marker detection
-├── VideoCapture.h      # Video capture wrapper
+├── VideoCapture.h      # Camera capture wrapper
 └── MarkerCreator.h     # ArUco marker generation
 
 src/
 ├── main.cpp            # Main application loop
 ├── KalmanFilter.cpp    # Kalman filter implementation
 ├── ArucoDetector.cpp   # Marker detection implementation
-├── VideoCapture.cpp    # Video capture implementation
-└── MarkerCreator.cpp   # Marker creation implementation
+├── VideoCapture.cpp    # Camera capture implementation
+└── MarkerCreator.cpp   # Marker generation implementation
 ```
 
 ## Components
 
 ### VideoCapture
-Handles video input from connected cameras. Wraps OpenCV's VideoCapture functionality to provide frame-by-frame video data.
+Wraps OpenCV's `cv::VideoCapture`. Opens a camera by index and returns frames at 640×480.
 
 ### ArucoDetector
-Detects ArUco markers in video frames using OpenCV's ArUco module. Provides:
-- Marker detection from frames
+Detects ArUco markers from the `DICT_4X4_50` dictionary. Provides:
+- Marker detection, with detected markers outlined on the frame
 - Corner point extraction
-- Marker center calculation
+- Marker center calculation (the average of the four corners)
 
 ### MarkerCreator
-Generates and saves ArUco markers for use in testing. Creates marker images that can be printed or displayed for detection.
+Generates an ArUco marker image and saves it so it can be printed or shown on another screen for testing.
 
 ### KalmanFilter
-Implements 2D Kalman filtering for position estimation and prediction:
-- Updates state based on detected marker positions
-- Predicts next position
-- Improves tracking accuracy by filtering out measurement noise
+Wraps `cv::KalmanFilter` with a constant-velocity model:
+- **State**: `[x, y, dx, dy]` (position and velocity)
+- **Measurement**: `[x, y]` (the detected marker center)
+- Initializes its state from the first measurement
+- Corrects its estimate with each new measurement, then predicts the next position
 
 ## Prerequisites
 
-- **CMake**: Version 3.10 or higher
-- **OpenCV**: With ArUco support (4.x recommended)
-- **C++17 or later**: Compiler with C++17 support
+- **CMake** 3.10 or higher
+- **A C++17 compiler**
+- **OpenCV 4.7 or later** with the contrib `aruco` module (Homebrew's `opencv` package includes it)
 
 ### Installation on macOS
 
 ```bash
-# Install dependencies via Homebrew
 brew install cmake opencv
-
-# Or install OpenCV from source for full ArUco support
 ```
 
 ## Building
 
+From the project root:
+
 ```bash
-# Create build directory
-mkdir build
-cd build
-
-# Configure and build
-cmake ..
-make
-
-# Run the application
-./KalmanFilter
+cmake -S . -B build
+cmake --build build
 ```
 
 ## Usage
 
 ```bash
-./KalmanFilter
+./build/KalmanFilter
 ```
 
 The application will:
-1. Create an ArUco marker and save it as `aruco_marker.png`
-2. Open a video stream from the default camera
-3. Detect ArUco markers in each frame
-4. Update the Kalman filter with detected positions
-5. Display:
-   - **White dots**: Detected marker center positions
-   - **Red dots**: Predicted marker positions using Kalman filter
-6. Output marker center and predicted positions to console
+1. Generate an ArUco marker (ID 0, 200×200 px) and save it as `aruco_marker.png` in the project root
+2. Open the camera at index `1` (set in `src/main.cpp`; change it to `0` if that is your default camera)
+3. Detect ArUco markers in each frame and track the first one found
+4. Update the Kalman filter with the marker's center, then predict its next position
+5. Display the live feed with:
+   - **White dot**: Detected marker center
+   - **Red dot**: Predicted position
+6. Print the detected center and predicted position to the console for each frame
+
+Print `aruco_marker.png` or open it on another screen, then hold it in front of the camera.
 
 ### Keyboard Controls
 
-- **ESC** or **Q**: Exit the application
+- **Any key**: Exit the application (the video window must be focused)
 
 ## How It Works
 
-### Kalman Filter Workflow
+For each frame:
 
-1. **Detection**: ArUco markers are detected in the current video frame
-2. **Measurement**: The detected marker center is used as a measurement input
-3. **Update**: The Kalman filter updates its internal state based on the measurement
-4. **Prediction**: The filter predicts the next marker position
-5. **Display**: Both detected and predicted positions are visualized on the frame
-
-## Output
-
-The application displays:
-- Console output showing detected marker center and predicted position for each frame
-- Live video with overlaid markers:
-  - White circle: Detected marker center
-  - Red circle: Predicted position
-  - Text labels for clarity
-
-## Dependencies
-
-- `OpenCV 4.x` - Computer vision library with ArUco support
-- `C++ Standard Library` - For standard data structures and I/O
+1. **Detect**: Find ArUco markers in the frame
+2. **Measure**: Use the first detected marker's center as the measurement
+3. **Correct**: Update the Kalman filter's state with the measurement
+4. **Predict**: Project the state forward one step to estimate the next position
+5. **Display**: Draw both the detected and predicted positions on the frame
 
 ## License
 
-MIT License
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
